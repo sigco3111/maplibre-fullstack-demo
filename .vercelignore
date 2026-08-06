@@ -4,6 +4,7 @@ node_modules/
 .omo/
 .senpi/
 .hermes/
+.vercel/
 *.md
 !README.md
 *.log
