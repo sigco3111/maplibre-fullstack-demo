@@ -13,8 +13,9 @@
 | 라이선스 | MIT |
 | 첫 커밋 | README.md + LICENSE |
 | 브랜치 | main (default) |
-| 패키지 | ❌ 미설치 (다음 세션 시작) |
-| Vercel | ❌ 미배포 |
+| 패키지 | ✅ 설치 완료 (maplibre-gl v5.24.0, three v0.160.1, vite v5.4.21, typescript v5.4+) |
+| Vercel | ✅ 라이브: https://maplibre-demo-eight.vercel.app (최종 deploy: 2026-08-06) |
+| 최신 태그 | v0.3.0-tier3 |
 
 ## 3. 완료된 작업
 
@@ -22,6 +23,17 @@
 - ✅ 로컬 clone 완료
 - ✅ README.md 작성 (구조/티어/참고/라이선스)
 - ✅ 작업 계획 (todo 10단계) - 본 문서
+- ✅ A-1 프로젝트 셋업 (Vite + TS + maplibre-gl v5 + three + Vercel framework preset 마이그레이션)
+- ✅ A-2 Tier 1 데모 5개 (globe+atmosphere, 3d-terrain, 3d-buildings, animate-camera, sky-fog-terrain)
+- ✅ A-3 Tier 1 데이터 5개 (ISS, USGS, EONET, Open-Meteo, GBFS) — `Result<T,E>` envelope
+- ✅ A-4 1차 Vercel 배포 (v0.1.0-tier3) — alias 200 + bundle SHA match
+- ✅ B-1 Tier 2 데모 5개 (heatmap, hillshade, contours, custom-camera, sky-fog-terrain advanced)
+- ✅ B-2 Tier 2 데이터 5개 (Wikipedia GeoSearch, OpenFlights, EONET categories, NOAA Solar, GeoNames)
+- ✅ B-3 2차 Vercel 배포 (v0.2.0-tier3) — alias 200 + bundle SHA match
+- ✅ C-1 Tier 3 데모 11개 (satellite, fill-extrusion, 3D-models, time-slider, clusters, popup, symbol, 360-photosphere, game-controls, live-realtime)
+- ✅ C-2 Tier 3 데이터 5개 (한국 행정구역/시군구/POI CORS-fallback, Black Marble, GEBCO)
+- ✅ C-3 3차 Vercel 배포 (v0.3.0-tier3) — alias 200 + bundle SHA match
+- ✅ README 최종 갱신 (21 demos + 15 sources + live URL)
 
 ## 4. 다음 작업 + 검증 기준
 
@@ -255,16 +267,18 @@ export async function fetchISS() {
 
 ## 8. 다음 세션 시작 명령 (복붙)
 
+전체 10단계 완료. 다음 worker는 다음 중 하나를 선택할 수 있음:
+- **Tier 4**: 게임 엔진 연동, WebXR, 사용자 업로드 POI, i18n
+- **React 마이그레이션**: vanilla TS → React 18 + react-router
+- **데이터 소스 확장**: 더 많은 NASA / ESA / KMA 공공 데이터
+- **i18n + l10n**: 한국어/영어 토글, 통화·단위 표시
+
+빠른 재기동:
 ```bash
 cd /Users/mac/work/maplibre-demo
-# Phase A-1
-npm install
-# package.json, vite.config.ts, tsconfig.json, index.html, src/main.ts, src/styles.css 작성
-npm run build
-npm run dev
-# http://localhost:5173 → 빈 글로브 확인
-git add -A && git commit -m "A-1: Vite + TS + maplibre-gl v5 셋업"
-gh repo view --web  # README 확인
+npm run dev   # http://localhost:5173 → 글로벌 기본 지도 + 사이드바
+git log --oneline -10   # 8개 main commit
+git tag -l   # v0.1.0-tier1, v0.2.0-tier2, v0.3.0-tier3
 ```
 
 ## 9. 참고 자료
