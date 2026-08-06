@@ -71,10 +71,11 @@ map.on('style.load', () => {
 });
 
 map.on('load', () => {
-  window.addEventListener('hashchange', () => { void navigateTo(map, window.location.hash); });
   if (window.location.hash) {
     void navigateTo(map, window.location.hash);
   } else {
     console.log('[router] no route; sidebar shows Tier 1 entries');
   }
 });
+
+window.addEventListener('hashchange', () => { void navigateTo(map, window.location.hash); });
