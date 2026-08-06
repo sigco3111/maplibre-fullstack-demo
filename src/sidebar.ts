@@ -34,7 +34,7 @@ export function renderSidebar(
   for (const tier of ['tier1', 'tier2', 'tier3'] as const) {
     if (grouped[tier].length === 0) continue;
     const details = document.createElement('details');
-    details.open = tier === 'tier1';
+    details.open = true;
     const summary = document.createElement('summary');
     summary.textContent = TIER_LABELS[tier];
     details.appendChild(summary);

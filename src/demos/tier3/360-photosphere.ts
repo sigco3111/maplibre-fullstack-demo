@@ -1,3 +1,4 @@
+import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as THREE from 'three';
 
@@ -23,7 +24,7 @@ function generateGradientTexture(): HTMLCanvasElement {
 }
 
 export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new (window as unknown as { maplibregl: typeof import('maplibre-gl') }).maplibregl.Map({
+  const map = new maplibregl.Map({
     container,
     style: STYLE,
     center: [0, 0],
