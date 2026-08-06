@@ -227,3 +227,102 @@ export function startGBFSPolling(
   const id = window.setInterval(() => { void tick(); }, intervalMs);
   return () => { cancelled = true; window.clearInterval(id); };
 }
+
+export async function fetchWikipediaGeoSearch(
+  lat: number,
+  lon: number,
+  radiusM = 10_000,
+): Promise<Result<WikiGeoResult[], FetchError>> {
+  const url = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=${radiusM}&gslimit=20&format=json&origin=*`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return err({ code: 'http', message: `HTTP ${r.status}`, url });
+    const j = (await r.json()) as { query?: { geosearch?: WikiGeoResult[] } };
+    return ok(j.query?.geosearch ?? []);
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url });
+  }
+}
+
+export async function fetchEONETCategories(): Promise<Result<EONETCategory[], FetchError>> {
+  const url = 'https://eonet.gsfc.nasa.gov/api/v3/categories';
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return err({ code: 'http', message: `HTTP ${r.status}`, url });
+    const j = (await r.json()) as { categories?: EONETCategory[] };
+    return ok(j.categories ?? []);
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url });
+  }
+}
+
+export async function fetchNOAASolar(): Promise<Result<NOAAF107, FetchError>> {
+  const url = 'https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json';
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return err({ code: 'http', message: `HTTP ${r.status}`, url });
+    const j = (await r.json()) as Array<{ 'time-tag'?: string; 'f10.7'?: number; ssn?: number }>;
+    if (!Array.isArray(j) || j.length === 0) return err({ code: 'parse', message: 'empty NOAA solar response', url });
+    const last = j[j.length - 1]!;
+    return ok({ time_tag: last['time-tag'] ?? '', f10_7: last['f10.7'] ?? 0, ssn: last.ssn ?? 0 });
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url });
+  }
+}
+
+export type OpenFlightsAirport = {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  iata: string;
+  icao: string;
+  lat: number;
+  lon: number;
+  alt: number;
+};
+
+const OPENFLIGHTS_CSV_URL = 'https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat';
+
+export async function fetchOpenFlights(): Promise<Result<OpenFlightsAirport[], FetchError>> {
+  try {
+    const r = await fetch(OPENFLIGHTS_CSV_URL);
+    if (!r.ok) return err({ code: 'http', message: `HTTP ${r.status}`, url: OPENFLIGHTS_CSV_URL });
+    const csv = await r.text();
+    const lines = csv.split('\n').filter((l) => l.length > 0);
+    const airports: OpenFlightsAirport[] = [];
+    for (const line of lines) {
+      const cols = line.split(',').map((c) => c.replace(/^"|"$/g, ''));
+      if (cols.length < 14) continue;
+      const lat = parseFloat(cols[6] ?? '');
+      const lon = parseFloat(cols[7] ?? '');
+      if (Number.isNaN(lat) || Number.isNaN(lon)) continue;
+      airports.push({
+        id: cols[0] ?? '',
+        name: cols[1] ?? '',
+        city: cols[2] ?? '',
+        country: cols[3] ?? '',
+        iata: cols[4] ?? '',
+        icao: cols[5] ?? '',
+        lat,
+        lon,
+        alt: parseInt(cols[8] ?? '0', 10) || 0,
+      });
+    }
+    return ok(airports);
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message });
+  }
+}
+
+export async function fetchGeoNames(): Promise<Result<GeoName[], FetchError>> {
+  const url = '/geonames/cities.json';
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return err({ code: 'http', message: `HTTP ${r.status}`, url });
+    const j = (await r.json()) as GeoName[];
+    return ok(j);
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url });
+  }
+}
