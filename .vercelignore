@@ -9,5 +9,4 @@ node_modules/
 !README.md
 *.log
 .DS_Store
-screenshots/
 HANDOFF.md
