@@ -25,6 +25,14 @@ const TIER1_ENTRIES: SidebarEntry[] = [
   { tier: 'tier1', slug: 'sky-fog-terrain', title: 'Sky + Fog + Terrain (base)' },
 ];
 
+const TIER2_ENTRIES: SidebarEntry[] = [
+  { tier: 'tier2', slug: 'heatmap', title: 'Heatmap' },
+  { tier: 'tier2', slug: 'hillshade', title: 'Hillshade' },
+  { tier: 'tier2', slug: 'contours', title: 'Contour Lines' },
+  { tier: 'tier2', slug: 'custom-camera', title: 'Custom Camera' },
+  { tier: 'tier2', slug: 'sky-fog-terrain', title: 'Sky + Fog + Terrain (advanced)' },
+];
+
 const map = new maplibregl.Map({
   container: 'map',
   style: OSM_STYLE,
@@ -35,7 +43,7 @@ const map = new maplibregl.Map({
 });
 
 const sidebarRoot = document.getElementById('sidebar-root');
-if (sidebarRoot) renderSidebar(sidebarRoot, TIER1_ENTRIES, (id, enabled) => {
+if (sidebarRoot) renderSidebar(sidebarRoot, [...TIER1_ENTRIES, ...TIER2_ENTRIES], (id, enabled) => {
   console.log('[data toggle]', id, enabled);
 });
 

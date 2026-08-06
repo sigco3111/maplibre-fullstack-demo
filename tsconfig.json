@@ -15,7 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "useDefineForClassFields": true,
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "geojson"]
   },
   "include": ["src", "src/**/*.ts", "src/**/*.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
