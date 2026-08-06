@@ -326,3 +326,86 @@ export async function fetchGeoNames(): Promise<Result<GeoName[], FetchError>> {
     return err({ code: 'cors', message: (e as Error).message, url });
   }
 }
+
+export type KRAdminFeature = {
+  type: 'Feature';
+  properties: { name: string; code?: string };
+  geometry: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] };
+};
+
+export type KRAdminFeatureCollection = {
+  type: 'FeatureCollection';
+  features: KRAdminFeature[];
+};
+
+export type BlackMarbleConfig = {
+  url: string;
+  attribution: string;
+  maxzoom: number;
+};
+
+const BLACK_MARBLE_TIME = '2024-01-01';
+
+export const BLACK_MARBLE: BlackMarbleConfig = {
+  url: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/${BLACK_MARBLE_TIME}/250m/{z}/{y}/{x}.jpg`,
+  attribution: 'NASA EOSDIS GIBS',
+  maxzoom: 8,
+};
+
+export type GebcoConfig = {
+  url: string;
+  attribution: string;
+  maxzoom: number;
+};
+
+export const GEBCO: GebcoConfig = {
+  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
+  attribution: 'Imagery © Esri / GEBCO',
+  maxzoom: 13,
+};
+
+export async function fetchKRAdmin(): Promise<Result<KRAdminFeatureCollection, FetchError>> {
+  const remoteUrl = 'https://www.data.go.kr/dataset/15149541/fileData.do';
+  const localUrl = '/kr/admin.json';
+  try {
+    const r = await fetch(localUrl);
+    if (r.ok) {
+      const j = (await r.json()) as KRAdminFeatureCollection;
+      return ok(j);
+    }
+    log.warn('[KR-Admin] local file missing; remote CORS will likely fail (data.go.kr CORS-uncertain)');
+    const remote = await fetch(remoteUrl);
+    if (!remote.ok) return err({ code: 'http', message: `KR-Admin HTTP ${remote.status} (remote)`, url: remoteUrl });
+    return err({ code: 'parse', message: 'KR-Admin remote HTML not parseable; provide public/kr/admin.json', url: remoteUrl });
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url: localUrl });
+  }
+}
+
+export async function fetchKRDistrict(): Promise<Result<KRAdminFeatureCollection, FetchError>> {
+  const localUrl = '/kr/district.json';
+  try {
+    const r = await fetch(localUrl);
+    if (r.ok) {
+      const j = (await r.json()) as KRAdminFeatureCollection;
+      return ok(j);
+    }
+    return err({ code: 'http', message: `KR-District HTTP ${r.status}`, url: localUrl });
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url: localUrl });
+  }
+}
+
+export async function fetchKRPOI(): Promise<Result<KRAdminFeatureCollection, FetchError>> {
+  const localUrl = '/kr/poi.json';
+  try {
+    const r = await fetch(localUrl);
+    if (r.ok) {
+      const j = (await r.json()) as KRAdminFeatureCollection;
+      return ok(j);
+    }
+    return err({ code: 'http', message: `KR-POI HTTP ${r.status}`, url: localUrl });
+  } catch (e) {
+    return err({ code: 'cors', message: (e as Error).message, url: localUrl });
+  }
+}
