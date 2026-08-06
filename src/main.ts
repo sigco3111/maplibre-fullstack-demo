@@ -35,7 +35,9 @@ const map = new maplibregl.Map({
 });
 
 const sidebarRoot = document.getElementById('sidebar-root');
-if (sidebarRoot) renderSidebar(sidebarRoot, TIER1_ENTRIES);
+if (sidebarRoot) renderSidebar(sidebarRoot, TIER1_ENTRIES, (id, enabled) => {
+  console.log('[data toggle]', id, enabled);
+});
 
 map.on('style.load', () => {
   (map as unknown as { setFog: (fog: Record<string, unknown>) => void }).setFog({
