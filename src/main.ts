@@ -61,15 +61,6 @@ if (sidebarRoot) renderSidebar(sidebarRoot, [...TIER1_ENTRIES, ...TIER2_ENTRIES,
   console.log('[data toggle]', id, enabled);
 });
 
-map.on('style.load', () => {
-  (map as unknown as { setFog: (fog: Record<string, unknown>) => void }).setFog({
-    color: 'rgb(186, 210, 235)',
-    'high-color': 'rgb(36, 92, 223)',
-    'horizon-blend': 0.02,
-    'space-color': 'rgb(11, 11, 25)',
-  });
-});
-
 map.on('load', () => {
   if (window.location.hash) {
     void navigateTo(map, window.location.hash);

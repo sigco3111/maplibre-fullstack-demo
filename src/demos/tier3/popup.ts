@@ -1,5 +1,6 @@
 import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -28,23 +29,31 @@ const STYLE = {
   ],
 };
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
+export function mount(_container: HTMLElement, map: MaplibreMap): () => void {
+  let currentPopup: maplibregl.Popup | null = null;
+  return applyDemo(map, {
     style: STYLE,
     center: [127, 37.5],
     zoom: 4,
+    onLoad: (m) => {
+      const onClick = (e: maplibregl.MapLayerMouseEvent): void => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+        if (currentPopup) currentPopup.remove();
+        currentPopup = new maplibregl.Popup({ closeButton: true })
+          .setLngLat(coords)
+          .setHTML(`<strong>${(f.properties as { name: string }).name}</strong>`)
+          .addTo(m);
+      };
+      m.on('click', 'cities', onClick);
+      return () => {
+        m.off('click', 'cities', onClick);
+        if (currentPopup) {
+          currentPopup.remove();
+          currentPopup = null;
+        }
+      };
+    },
   });
-  map.on('load', () => {
-    map.on('click', 'cities', (e) => {
-      const f = e.features?.[0];
-      if (!f) return;
-      const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
-      new maplibregl.Popup({ closeButton: true })
-        .setLngLat(coords)
-        .setHTML(`<strong>${(f.properties as { name: string }).name}</strong>`)
-        .addTo(map);
-    });
-  });
-  return () => map.remove();
 }

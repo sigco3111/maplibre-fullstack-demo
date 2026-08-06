@@ -1,5 +1,5 @@
-import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -14,53 +14,52 @@ const STYLE = {
   layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
 };
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
-    style: STYLE,
-    center: [127, 37.5],
-    zoom: 5,
-  });
-
+export function mount(container: HTMLElement, map: MaplibreMap): () => void {
+  let hud: HTMLDivElement | null = null;
+  let raf = 0;
   const keys: Record<string, boolean> = {};
   let bearing = 0;
   const speed = 0.5;
+  return applyDemo(map, {
+    style: STYLE,
+    center: [127, 37.5],
+    zoom: 5,
+    onLoad: (m) => {
+      const onKey = (down: boolean) => (e: KeyboardEvent): void => {
+        if (['w', 'a', 's', 'd', 'q', 'e', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+          keys[e.key] = down;
+          e.preventDefault();
+        }
+      };
+      window.addEventListener('keydown', onKey(true));
+      window.addEventListener('keyup', onKey(false));
 
-  const hud = document.createElement('div');
-  hud.style.cssText = 'position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;padding:8px 12px;font:12px monospace;z-index:1;';
-  container.parentElement?.appendChild(hud);
+      hud = document.createElement('div');
+      hud.style.cssText = 'position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;padding:8px 12px;font:12px monospace;z-index:1;';
+      container.parentElement?.appendChild(hud);
 
-  const onKey = (down: boolean) => (e: KeyboardEvent) => {
-    if (['w', 'a', 's', 'd', 'q', 'e', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-      keys[e.key] = down;
-      e.preventDefault();
-    }
-  };
-  window.addEventListener('keydown', onKey(true));
-  window.addEventListener('keyup', onKey(false));
+      const tick = (): void => {
+        const c = m.getCenter();
+        let [lng, lat] = [c.lng, c.lat];
+        if (keys['w'] || keys['ArrowUp']) lat += speed;
+        if (keys['s'] || keys['ArrowDown']) lat -= speed;
+        if (keys['a'] || keys['ArrowLeft']) lng -= speed;
+        if (keys['d'] || keys['ArrowRight']) lng += speed;
+        if (keys['q']) bearing = (bearing - 5) % 360;
+        if (keys['e']) bearing = (bearing + 5) % 360;
+        m.setCenter([lng, lat]);
+        m.setBearing(bearing);
+        if (hud) hud.textContent = `center: ${lng.toFixed(2)}, ${lat.toFixed(2)}  bearing: ${bearing.toFixed(0)}°`;
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
 
-  let raf = 0;
-  const tick = (): void => {
-    const c = map.getCenter();
-    let [lng, lat] = [c.lng, c.lat];
-    if (keys['w'] || keys['ArrowUp']) lat += speed;
-    if (keys['s'] || keys['ArrowDown']) lat -= speed;
-    if (keys['a'] || keys['ArrowLeft']) lng -= speed;
-    if (keys['d'] || keys['ArrowRight']) lng += speed;
-    if (keys['q']) bearing = (bearing - 5) % 360;
-    if (keys['e']) bearing = (bearing + 5) % 360;
-    map.setCenter([lng, lat]);
-    map.setBearing(bearing);
-    hud.textContent = `center: ${lng.toFixed(2)}, ${lat.toFixed(2)}  bearing: ${bearing.toFixed(0)}°`;
-    raf = requestAnimationFrame(tick);
-  };
-  raf = requestAnimationFrame(tick);
-
-  return () => {
-    cancelAnimationFrame(raf);
-    window.removeEventListener('keydown', onKey(true));
-    window.removeEventListener('keyup', onKey(false));
-    hud.remove();
-    map.remove();
-  };
+      return () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener('keydown', onKey(true));
+        window.removeEventListener('keyup', onKey(false));
+        if (hud) { hud.remove(); hud = null; }
+      };
+    },
+  });
 }

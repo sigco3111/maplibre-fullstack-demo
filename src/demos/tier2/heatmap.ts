@@ -1,5 +1,5 @@
-import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -33,26 +33,28 @@ function makeSyntheticFeatures(center: [number, number], count: number): GeoJSON
   return { type: 'FeatureCollection', features };
 }
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
+export function mount(_container: HTMLElement, map: MaplibreMap): () => void {
+  return applyDemo(map, {
     style: STYLE,
     center: [127, 37.5],
     zoom: 4,
+    onLoad: (m) => {
+      m.addSource('heat-points', { type: 'geojson', data: makeSyntheticFeatures([127, 37.5], 800) });
+      m.addLayer({
+        id: 'heat',
+        type: 'heatmap',
+        source: 'heat-points',
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'mag'], 0, 0, 6, 1],
+          'heatmap-intensity': 1,
+          'heatmap-radius': 20,
+          'heatmap-opacity': 0.8,
+        },
+      });
+      return () => {
+        if (m.getLayer('heat')) m.removeLayer('heat');
+        if (m.getSource('heat-points')) m.removeSource('heat-points');
+      };
+    },
   });
-  map.on('load', () => {
-    map.addSource('heat-points', { type: 'geojson', data: makeSyntheticFeatures([127, 37.5], 800) });
-    map.addLayer({
-      id: 'heat',
-      type: 'heatmap',
-      source: 'heat-points',
-      paint: {
-        'heatmap-weight': ['interpolate', ['linear'], ['get', 'mag'], 0, 0, 6, 1],
-        'heatmap-intensity': 1,
-        'heatmap-radius': 20,
-        'heatmap-opacity': 0.8,
-      },
-    });
-  });
-  return () => map.remove();
 }

@@ -1,5 +1,5 @@
-import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -28,20 +28,20 @@ const STYLE = {
   ],
 };
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
+export function mount(_container: HTMLElement, map: MaplibreMap): () => void {
+  return applyDemo(map, {
     style: STYLE,
     center: [127.5, 36.5],
     zoom: 6,
+    onLoad: (m) => {
+      const onClick = (e: maplibregl.MapLayerMouseEvent): void => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+        m.easeTo({ center: coords, zoom: 12, duration: 1500 });
+      };
+      m.on('click', 'cities', onClick);
+      return () => { m.off('click', 'cities', onClick); };
+    },
   });
-  map.on('load', () => {
-    map.on('click', 'cities', (e) => {
-      const f = e.features?.[0];
-      if (!f) return;
-      const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
-      map.easeTo({ center: coords, zoom: 12, duration: 1500 });
-    });
-  });
-  return () => map.remove();
 }

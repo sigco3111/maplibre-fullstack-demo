@@ -1,5 +1,5 @@
-import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -16,23 +16,21 @@ const STYLE = {
       tileSize: 256,
       encoding: 'terrarium' as const,
       maxzoom: 15,
-      attribution: 'Terrain © Mapzen / AWS Terrain Tiles',
+      attribution: 'Terrain © AWS',
     },
   },
   layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
 };
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
+export function mount(_container: HTMLElement, map: MaplibreMap): () => void {
+  return applyDemo(map, {
     style: STYLE,
     center: [127, 37.5],
     zoom: 11,
     pitch: 60,
     bearing: 0,
+    onLoad: (m) => {
+      m.setTerrain({ source: 'terrain', exaggeration: 1.5 });
+    },
   });
-  map.on('load', () => {
-    map.setTerrain({ source: 'terrain', exaggeration: 1.5 });
-  });
-  return () => map.remove();
 }

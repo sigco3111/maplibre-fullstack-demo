@@ -1,5 +1,5 @@
-import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -19,22 +19,23 @@ const STYLE = {
   layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
 };
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
+export function mount(_container: HTMLElement, map: MaplibreMap): () => void {
+  return applyDemo(map, {
     style: STYLE,
     center: [10, 20],
     zoom: 2,
     pitch: 60,
-    ...({ projection: 'globe' } as { projection: string }),
+    projection: 'globe',
+    onLoad: (m) => {
+      m.addLayer({
+        id: 'countries-extrude',
+        type: 'fill-extrusion',
+        source: 'countries',
+        paint: { 'fill-extrusion-color': '#2c5fa3', 'fill-extrusion-height': 50000, 'fill-extrusion-opacity': 0.6 },
+      });
+      return () => {
+        if (m.getLayer('countries-extrude')) m.removeLayer('countries-extrude');
+      };
+    },
   });
-  map.on('load', () => {
-    map.addLayer({
-      id: 'countries-extrude',
-      type: 'fill-extrusion',
-      source: 'countries',
-      paint: { 'fill-extrusion-color': '#2c5fa3', 'fill-extrusion-height': 50000, 'fill-extrusion-opacity': 0.6 },
-    });
-  });
-  return () => map.remove();
 }

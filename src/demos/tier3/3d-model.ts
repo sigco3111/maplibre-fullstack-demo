@@ -1,6 +1,7 @@
 import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as THREE from 'three';
+import { applyDemo } from '../../core/demoEngine';
 
 const STYLE = {
   version: 8 as const,
@@ -15,61 +16,52 @@ const STYLE = {
   layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
 };
 
-export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
-  const map = new maplibregl.Map({
-    container,
+export function mount(_container: HTMLElement, map: MaplibreMap): () => void {
+  return applyDemo(map, {
     style: STYLE,
     center: [127, 37.5],
     zoom: 14,
     pitch: 60,
-  });
-
-  let renderer: THREE.WebGLRenderer | null = null;
-  let scene: THREE.Scene | null = null;
-  let cube: THREE.Mesh | null = null;
-  const camera = new THREE.PerspectiveCamera();
-  const transform = { translateX: 0, translateY: 0, translateZ: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 };
-
-  const layer: maplibregl.CustomLayerInterface = {
-    id: 'three-cube',
-    type: 'custom' as const,
-    renderingMode: '3d' as const,
-    onAdd: (m, gl) => {
-      renderer = new THREE.WebGLRenderer({ canvas: m.getCanvas(), context: gl, antialias: true });
-      renderer!.autoClear = false;
-      scene = new THREE.Scene();
-      const light = new THREE.DirectionalLight(0xffffff, 1.0);
-      light.position.set(0, -70, 100).normalize();
-      scene.add(light);
-      const geo = new THREE.BoxGeometry(20, 20, 20);
-      const mat = new THREE.MeshStandardMaterial({ color: 0xff5050 });
-      cube = new THREE.Mesh(geo, mat);
-      scene.add(cube);
+    onLoad: (m) => {
+      const camera = new THREE.PerspectiveCamera();
+      const layerId = 'three-cube';
+      const layer: maplibregl.CustomLayerInterface = {
+        id: layerId,
+        type: 'custom' as const,
+        renderingMode: '3d' as const,
+        onAdd: (mm, gl) => {
+          const renderer = new THREE.WebGLRenderer({ canvas: mm.getCanvas(), context: gl, antialias: true });
+          (renderer as unknown as { autoClear: boolean }).autoClear = false;
+          const scene = new THREE.Scene();
+          const light = new THREE.DirectionalLight(0xffffff, 1.0);
+          light.position.set(0, -70, 100).normalize();
+          scene.add(light);
+          const geo = new THREE.BoxGeometry(20, 20, 20);
+          const mat = new THREE.MeshStandardMaterial({ color: 0xff5050 });
+          const cube = new THREE.Mesh(geo, mat);
+          scene.add(cube);
+          (layer as unknown as { _renderer: THREE.WebGLRenderer; _scene: THREE.Scene; _cube: THREE.Mesh })._renderer = renderer;
+          (layer as unknown as { _renderer: THREE.WebGLRenderer; _scene: THREE.Scene; _cube: THREE.Mesh })._scene = scene;
+          (layer as unknown as { _renderer: THREE.WebGLRenderer; _scene: THREE.Scene; _cube: THREE.Mesh })._cube = cube;
+          const renderFn = (): void => {
+            const r = (layer as unknown as { _renderer: THREE.WebGLRenderer })._renderer;
+            const s = (layer as unknown as { _scene: THREE.Scene })._scene;
+            const c = (layer as unknown as { _cube: THREE.Mesh })._cube;
+            if (!r || !s || !c) return;
+            const rot = (Date.now() / 100) % 360;
+            c.rotation.set((rot * Math.PI) / 180, (rot * Math.PI) / 90, 0);
+            r.resetState();
+            r.render(s, camera);
+            mm.triggerRepaint();
+          };
+          (layer as unknown as { render: (gl: WebGLRenderingContext, matrix: number[]) => void }).render = renderFn;
+        },
+        render: () => {},
+      };
+      m.addLayer(layer as unknown as maplibregl.LayerSpecification);
+      return () => {
+        if (m.getLayer(layerId)) m.removeLayer(layerId);
+      };
     },
-    render: (_gl, _matrix) => {
-      if (!renderer || !scene || !cube) return;
-      const rot = (Date.now() / 100) % 360;
-      cube.rotation.set((rot * Math.PI) / 180, (rot * Math.PI) / 90, 0);
-      const m = new THREE.Matrix4();
-      m.makeTranslation(transform.translateX, transform.translateY, transform.translateZ);
-      m.scale(new THREE.Vector3(transform.scale, transform.scale, transform.scale));
-      m.setPosition(0, 0, 0);
-      camera.projectionMatrix.copy(m);
-      renderer.resetState();
-      renderer.render(scene, camera);
-      map.triggerRepaint();
-    },
-  };
-
-  map.on('load', () => {
-    if (map.getLayer('three-cube')) return;
-    map.addLayer(layer as unknown as maplibregl.LayerSpecification);
   });
-
-  return () => {
-    if (cube) { scene?.remove(cube); cube.geometry.dispose(); (cube.material as THREE.Material).dispose(); }
-    renderer?.dispose();
-    if (map.getLayer('three-cube')) map.removeLayer('three-cube');
-    map.remove();
-  };
 }
