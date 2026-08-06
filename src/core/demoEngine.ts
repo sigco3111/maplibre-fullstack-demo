@@ -31,20 +31,26 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
     pendingUnmount = null;
   }
 
+  let cancelled = false;
   const performSwitch = (): void => {
     if (token !== styleWaitToken) return;
-    try {
-      map.setStyle(spec.style as never, { diff: false });
-    } catch (e) {
-      console.error('[demo] setStyle error', e);
-    }
-    if (spec.projection) {
-      try { map.setProjection({ type: spec.projection } as never); } catch (e) { console.warn('[demo] setProjection', e); }
-    }
-    if (spec.center) map.setCenter(spec.center);
-    if (spec.zoom !== undefined) map.setZoom(spec.zoom);
-    if (spec.pitch !== undefined) map.setPitch(spec.pitch);
-    if (spec.bearing !== undefined) map.setBearing(spec.bearing);
+    if (cancelled) return;
+    if (container) container.style.visibility = 'hidden';
+    requestAnimationFrame(() => {
+      if (token !== styleWaitToken || cancelled) return;
+      try {
+        map.setStyle(spec.style as never, { diff: false });
+      } catch (e) {
+        console.error('[demo] setStyle error', e);
+      }
+      if (spec.projection) {
+        try { map.setProjection({ type: spec.projection } as never); } catch (e) { console.warn('[demo] setProjection', e); }
+      }
+      if (spec.center) map.setCenter(spec.center);
+      if (spec.zoom !== undefined) map.setZoom(spec.zoom);
+      if (spec.pitch !== undefined) map.setPitch(spec.pitch);
+      if (spec.bearing !== undefined) map.setBearing(spec.bearing);
+    });
   };
 
   if (map.loaded()) {
@@ -54,7 +60,6 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
   }
 
   let onLoadCleanup: (() => void) | void = undefined;
-  let cancelled = false;
   let revealed = false;
 
   const reveal = (): void => {
@@ -64,13 +69,16 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
     if (container) container.style.visibility = 'visible';
     requestAnimationFrame(() => {
       if (cancelled || token !== styleWaitToken) return;
-      if (spec.onLoad) {
+      setTimeout(() => {
+        if (cancelled || token !== styleWaitToken) return;
+        if (spec.onLoad) {
         try {
           onLoadCleanup = spec.onLoad(map);
         } catch (e) {
           console.error('[demo] onLoad error', e);
         }
-      }
+        }
+      }, 0);
     });
     pendingUnmount = () => {
       try {
