@@ -65,13 +65,15 @@ export type GeoName = {
 };
 
 export async function fetchISS(): Promise<Result<[number, number], FetchError>> {
-  const url = 'http://api.open-notify.org/iss-now.json';
+  const url = 'https://api.wheretheiss.at/v1/satellites/25544';
   try {
     const r = await fetch(url);
     if (!r.ok) return err({ code: 'http', message: `HTTP ${r.status}`, url });
-    const j = (await r.json()) as { iss_position?: { longitude: string; latitude: string } };
-    if (!j.iss_position) return err({ code: 'parse', message: 'missing iss_position', url });
-    return ok([+j.iss_position.longitude, +j.iss_position.latitude]);
+    const j = (await r.json()) as { latitude?: number; longitude?: number };
+    if (j.latitude === undefined || j.longitude === undefined) {
+      return err({ code: 'parse', message: 'missing lat/lng in wheretheiss response', url });
+    }
+    return ok([j.longitude, j.latitude]);
   } catch (e) {
     return err({ code: 'cors', message: (e as Error).message, url });
   }

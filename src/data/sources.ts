@@ -28,10 +28,10 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
   iss: {
     id: 'iss',
     title: 'ISS Position',
-    url: 'http://api.open-notify.org/iss-now.json',
+    url: 'https://api.wheretheiss.at/v1/satellites/25544',
     pollMs: 5_000,
     tier: 1,
-    attribution: 'ISS position © Open Notify (http only)',
+    attribution: 'ISS position © wheretheiss.at (HTTPS, CORS-enabled)',
   },
   usgs: {
     id: 'usgs',

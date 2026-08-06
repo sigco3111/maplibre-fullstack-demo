@@ -40,7 +40,7 @@ export function mount(container: HTMLElement, _previous: MaplibreMap): () => voi
       const f = e.features?.[0];
       if (!f) return;
       const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
-      new (window as unknown as { maplibregl: typeof import('maplibre-gl') }).maplibregl.Popup({ closeButton: true })
+      new maplibregl.Popup({ closeButton: true })
         .setLngLat(coords)
         .setHTML(`<strong>${(f.properties as { name: string }).name}</strong>`)
         .addTo(map);

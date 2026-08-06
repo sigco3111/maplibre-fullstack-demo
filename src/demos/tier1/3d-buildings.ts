@@ -1,47 +1,28 @@
 import maplibregl from 'maplibre-gl';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 
-const STYLE = {
-  version: 8 as const,
-  sources: {
-    osm: {
-      type: 'raster' as const,
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-    },
-    osmbuildings: {
-      type: 'vector' as const,
-      tiles: ['https://data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json'],
-      maxzoom: 14,
-      attribution: '© OSM Buildings',
-    },
-  },
-  layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
-};
-
 export function mount(container: HTMLElement, _previous: MaplibreMap): () => void {
   const map = new maplibregl.Map({
     container,
-    style: STYLE,
-    center: [127.0, 37.55],
-    zoom: 15,
+    style: 'https://tiles.openfreemap.org/styles/liberty',
+    center: [127.005, 37.56],
+    zoom: 15.5,
     pitch: 60,
-    bearing: 0,
+    bearing: -20,
   });
   map.on('load', () => {
-    if (!map.getSource('osmbuildings')) return;
-    map.addLayer({
-      id: 'buildings-3d',
-      type: 'fill-extrusion',
-      source: 'osmbuildings',
-      paint: {
-        'fill-extrusion-color': '#b8c5d6',
-        'fill-extrusion-height': ['get', 'height'],
-        'fill-extrusion-base': 0,
-        'fill-extrusion-opacity': 0.85,
-      },
-    });
+    const layers = map.getStyle()?.layers ?? [];
+    const hasBuildings = layers.some((l) => l.id === 'building' || l.id === 'building-3d');
+    if (!hasBuildings) {
+      console.warn('[3d-buildings] OpenFreeMap style does not expose a "building" layer (available:', layers.map((l) => l.id).join(', '), ')');
+      return;
+    }
+    if (!map.getLayer('building-3d') && map.getLayer('building')) {
+      map.setPaintProperty('building', 'fill-extrusion-color', '#b8c5d6');
+      map.setPaintProperty('building', 'fill-extrusion-height', 12);
+      map.setPaintProperty('building', 'fill-extrusion-base', 0);
+      map.setPaintProperty('building', 'fill-extrusion-opacity', 0.85);
+    }
   });
   return () => map.remove();
 }

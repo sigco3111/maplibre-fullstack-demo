@@ -37,7 +37,7 @@ export function mount(container: HTMLElement, _previous: MaplibreMap): () => voi
       el.addEventListener('click', () => {
         map.flyTo({ center: city.coord, zoom: 9, speed: 1.5, essential: true });
       });
-      new (window as unknown as { maplibregl: typeof import('maplibre-gl') }).maplibregl.Marker({ element: el })
+      new maplibregl.Marker({ element: el })
         .setLngLat(city.coord)
         .addTo(map);
     }
