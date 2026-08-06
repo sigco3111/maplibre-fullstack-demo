@@ -1,6 +1,8 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles.css';
+import { renderSidebar, type SidebarEntry } from './sidebar';
+import { navigateTo } from './router';
 
 const OSM_STYLE = {
   version: 8 as const,
@@ -15,6 +17,14 @@ const OSM_STYLE = {
   layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
 };
 
+const TIER1_ENTRIES: SidebarEntry[] = [
+  { tier: 'tier1', slug: 'globe-atmosphere', title: 'Globe + Atmosphere' },
+  { tier: 'tier1', slug: '3d-terrain', title: '3D Terrain (AWS DEM)' },
+  { tier: 'tier1', slug: '3d-buildings', title: '3D Buildings (OSM)' },
+  { tier: 'tier1', slug: 'animate-camera', title: 'Animate Camera' },
+  { tier: 'tier1', slug: 'sky-fog-terrain', title: 'Sky + Fog + Terrain (base)' },
+];
+
 const map = new maplibregl.Map({
   container: 'map',
   style: OSM_STYLE,
@@ -23,6 +33,9 @@ const map = new maplibregl.Map({
   pitch: 0,
   ...({ projection: 'globe' } as { projection: string }),
 });
+
+const sidebarRoot = document.getElementById('sidebar-root');
+if (sidebarRoot) renderSidebar(sidebarRoot, TIER1_ENTRIES);
 
 map.on('style.load', () => {
   (map as unknown as { setFog: (fog: Record<string, unknown>) => void }).setFog({
@@ -33,14 +46,11 @@ map.on('style.load', () => {
   });
 });
 
-function handleRoute(): void {
-  const hash = window.location.hash;
-  if (hash.startsWith('#/tier1/') || hash.startsWith('#/tier2/') || hash.startsWith('#/tier3/')) {
-    console.log(`[router] route: ${hash}`);
+map.on('load', () => {
+  window.addEventListener('hashchange', () => { void navigateTo(map, window.location.hash); });
+  if (window.location.hash) {
+    void navigateTo(map, window.location.hash);
   } else {
-    console.log('[router] no tier route active (will activate in task #8)');
+    console.log('[router] no route; sidebar shows Tier 1 entries');
   }
-}
-
-window.addEventListener('hashchange', handleRoute);
-handleRoute();
+});
