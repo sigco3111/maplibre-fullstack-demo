@@ -24,8 +24,63 @@ npm run dev
 
 🔗 **https://maplibre-demo-eight.vercel.app**
 
-> 현재 상태: 빌드 셋업 완료, Tier 1 데모 작업 예정.
-> Tier 1 작업 완료 시 Vercel 자동 재배포 (5-30초).
+> 현재 상태: **모든 tier (1/2/3) 라이브** — 21 데모 + 15 데이터 소스
+> Latest deploy: `v0.3.0-tier3` (SHA `21e4e4129d02427cab0a923517127b40b2e54f04984b2dd5170c33c0da81981a`)
+
+## 🎯 데모 목록 (21 demos, 3 tiers)
+
+### Tier 1 — 글로브·지형·건물 (5)
+| Demo | Maplibre example | Source |
+| --- | --- | --- |
+| Globe + Atmosphere | `display-a-globe-with-an-atmosphere` | `src/demos/tier1/globe-atmosphere.ts` |
+| 3D Terrain | `3d-terrain` (AWS Terrarium DEM) | `src/demos/tier1/3d-terrain.ts` |
+| 3D Buildings | `display-buildings-in-3d` (OSM Buildings) | `src/demos/tier1/3d-buildings.ts` |
+| Animate Camera | `animate-map-camera-around-a-point` (RAF orbit) | `src/demos/tier1/animate-camera.ts` |
+| Sky + Fog + Terrain (base) | `sky-fog-terrain` | `src/demos/tier1/sky-fog-terrain.ts` |
+
+### Tier 2 — 히트맵·하늘·안개 (5)
+| Demo | Maplibre example | Source |
+| --- | --- | --- |
+| Heatmap | `create-a-heatmap-layer` | `src/demos/tier2/heatmap.ts` |
+| Hillshade | `add-a-hillshade-layer` | `src/demos/tier2/hillshade.ts` |
+| Contour Lines | `add-contour-lines` | `src/demos/tier2/contours.ts` |
+| Custom Camera | `customize-camera-animations` | `src/demos/tier2/custom-camera.ts` |
+| Sky + Fog + Terrain (advanced) | `sky-fog-terrain` (more params) | `src/demos/tier2/sky-fog-terrain.ts` |
+
+### Tier 3 — 위성·모델·시계열 (11)
+| Demo | Maplibre example | Source |
+| --- | --- | --- |
+| Satellite Map | `display-a-satellite-map` (Esri World Imagery) | `src/demos/tier3/satellite.ts` |
+| Globe + Fill Extrusion | `display-a-globe-with-a-fill-extrusion-layer` (Natural Earth) | `src/demos/tier3/fill-extrusion.ts` |
+| 3D Model (three.js) | `add-a-3d-model-using-threejs` | `src/demos/tier3/3d-model.ts` |
+| 3D Model w/ Shadow | `add-a-3d-model-with-shadow-using-threejs` | `src/demos/tier3/3d-model-shadow.ts` |
+| Time Slider | `create-a-time-slider` | `src/demos/tier3/time-slider.ts` |
+| Clusters | `create-and-style-clusters` | `src/demos/tier3/clusters.ts` |
+| Popup on Click | `display-a-popup-on-click` | `src/demos/tier3/popup.ts` |
+| Symbol on Click | `center-the-map-on-a-clicked-symbol` | `src/demos/tier3/symbol-on-click.ts` |
+| 360 Photosphere | `enter-a-360-photosphere` (gradient sky) | `src/demos/tier3/360-photosphere.ts` |
+| Game-like Controls | `navigate-the-map-with-game-like-controls` (WASD) | `src/demos/tier3/game-controls.ts` |
+| Live Realtime (ISS) | `add-live-realtime-data` (ISS polling + trail) | `src/demos/tier3/live-realtime.ts` |
+
+## 📊 데이터 소스 (15 sources, 3 tiers)
+
+| Tier | Source | Endpoint | Polling | Attribution |
+| --- | --- | --- | --- | --- |
+| 1 | ISS | `api.open-notify.org/iss-now.json` | 5s | Open Notify (HTTP) |
+| 1 | USGS Earthquakes | `earthquake.usgs.gov/.../all_week.geojson` | 5m | USGS |
+| 1 | NASA EONET | `eonet.gsfc.nasa.gov/api/v3/events` | 10m | NASA EONET |
+| 1 | Open-Meteo | `api.open-meteo.com/v1/forecast` | 10m | Open-Meteo |
+| 1 | GBFS (bikeshare) | `gbfs.mobilitydata.org` | 5m | MobilityData |
+| 2 | Wikipedia GeoSearch | `en.wikipedia.org/w/api.php?geosearch` | one-shot | Wikipedia |
+| 2 | OpenFlights | `raw.githubusercontent.com/.../airports.dat` | one-shot | OpenFlights (jpatokal) |
+| 2 | NASA EONET categories | `eonet.gsfc.nasa.gov/api/v3/categories` | 60m | NASA EONET |
+| 2 | NOAA Solar | `services.swpc.noaa.gov/.../observed-solar-cycle-indices.json` | 30m | NOAA SWPC |
+| 2 | GeoNames cities | `public/geonames/cities.json` (static) | one-shot | GeoNames (CC-BY 4.0) |
+| 3 | 한국 행정구역 (시도) | `public/kr/admin.json` (CORS-fallback) | one-shot | data.go.kr |
+| 3 | 시도 시군구 경계 | `public/kr/district.json` (CORS-fallback) | one-shot | data.go.kr |
+| 3 | 전국 POI | `public/kr/poi.json` (CORS-fallback) | one-shot | data.go.kr |
+| 3 | NASA Black Marble | `gibs.earthdata.nasa.gov/.../VIIRS_Black_Marble/...` | static | NASA EOSDIS GIBS |
+| 3 | GEBCO Seabed | `server.arcgisonline.com/.../World_Ocean_Base` | static | GEBCO / Esri |
 
 ## 📦 스택
 
