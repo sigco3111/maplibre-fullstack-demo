@@ -5,6 +5,8 @@ export type SidebarEntry = {
   tier: 'tier1' | 'tier2' | 'tier3';
   slug: string;
   title: string;
+  ko: string;
+  desc: string;
 };
 
 const TIER_LABELS: Record<SidebarEntry['tier'], string> = {
@@ -41,11 +43,20 @@ export function renderSidebar(
     const list = document.createElement('ul');
     for (const entry of grouped[tier]) {
       const li = document.createElement('li');
+      li.className = 'demo-item';
       const a = document.createElement('a');
       a.href = `#/${tier}/${entry.slug}`;
-      a.textContent = entry.title;
       a.dataset.tier = tier;
       a.dataset.slug = entry.slug;
+      a.title = `${entry.ko} — ${entry.desc}`;
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'demo-title';
+      titleSpan.textContent = entry.title;
+      const koSpan = document.createElement('span');
+      koSpan.className = 'demo-ko';
+      koSpan.textContent = entry.ko;
+      a.appendChild(titleSpan);
+      a.appendChild(koSpan);
       li.appendChild(a);
       list.appendChild(li);
     }
@@ -66,21 +77,31 @@ export function renderSidebar(
     if (dataByTier[tier].length === 0) continue;
     const tierHeader = document.createElement('div');
     tierHeader.textContent = DATA_TIER_LABELS[tier];
-    tierHeader.style.cssText = 'margin: 8px 0 4px 0; font-weight: 600; font-size: 12px; opacity: 0.7;';
+    tierHeader.className = 'data-tier-header';
     dataDetails.appendChild(tierHeader);
     const list = document.createElement('ul');
     for (const id of dataByTier[tier]) {
+      const src = SOURCES[id];
       const li = document.createElement('li');
+      li.className = 'data-item';
       const label = document.createElement('label');
-      label.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer;';
+      label.title = `${src.ko} — ${src.desc}`;
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.dataset.dataSource = id;
       cb.addEventListener('change', () => onDataToggle(id, cb.checked));
-      const span = document.createElement('span');
-      span.textContent = SOURCES[id].title;
+      const textWrap = document.createElement('span');
+      textWrap.className = 'data-text';
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'data-title';
+      titleSpan.textContent = src.title;
+      const koSpan = document.createElement('span');
+      koSpan.className = 'data-ko';
+      koSpan.textContent = src.ko;
+      textWrap.appendChild(titleSpan);
+      textWrap.appendChild(koSpan);
       label.appendChild(cb);
-      label.appendChild(span);
+      label.appendChild(textWrap);
       li.appendChild(label);
       list.appendChild(li);
     }

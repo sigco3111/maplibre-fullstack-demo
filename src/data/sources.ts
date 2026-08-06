@@ -22,6 +22,8 @@ export type DataSource = {
   pollMs: number;
   tier: 1 | 2 | 3;
   attribution: string;
+  ko: string;
+  desc: string;
 };
 
 export const SOURCES: Record<DataSourceId, DataSource> = {
@@ -32,6 +34,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 5_000,
     tier: 1,
     attribution: 'ISS position © wheretheiss.at (HTTPS, CORS-enabled)',
+    ko: 'ISS 위치',
+    desc: '국제우주정거장 좌표를 5초마다 받아옵니다',
   },
   usgs: {
     id: 'usgs',
@@ -40,6 +44,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 300_000,
     tier: 1,
     attribution: 'USGS Earthquake Hazards Program',
+    ko: 'USGS 지진',
+    desc: '지난 주 전세계 지진을 원으로 표시합니다 (5분 갱신)',
   },
   eonet: {
     id: 'eonet',
@@ -48,6 +54,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 600_000,
     tier: 1,
     attribution: 'NASA Earth Observatory Natural Event Tracker',
+    ko: 'NASA 자연재해',
+    desc: 'NASA EONET의 진행 중 산불·폭풍·화산 이벤트를 마커로 표시합니다 (10분 갱신)',
   },
   openmeteo: {
     id: 'openmeteo',
@@ -56,6 +64,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 600_000,
     tier: 1,
     attribution: 'Open-Meteo (free weather API)',
+    ko: 'Open-Meteo',
+    desc: '지도 중심점의 현재 기온·풍속을 텍스트로 표시합니다 (10분 갱신)',
   },
   gbfs: {
     id: 'gbfs',
@@ -64,6 +74,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 300_000,
     tier: 1,
     attribution: 'GBFS / MobilityData',
+    ko: 'GBFS 자전거',
+    desc: '전세계 공개 자전거 공유 시스템의 스테이션과 잔여 자전거 수 (5분 갱신)',
   },
   wikipedia: {
     id: 'wikipedia',
@@ -72,6 +84,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 2,
     attribution: 'Wikipedia API',
+    ko: 'Wikipedia 지오검색',
+    desc: '지도 중심 반경 10km의 위키피디아 항목을 마커로 표시합니다 (1회)',
   },
   openflights: {
     id: 'openflights',
@@ -80,6 +94,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 2,
     attribution: 'OpenFlights (jpatokal)',
+    ko: 'OpenFlights 공항',
+    desc: '전세계 공항 목록(약 8000개)을 작은 원으로 표시합니다 (1회)',
   },
   'eonet-categories': {
     id: 'eonet-categories',
@@ -88,6 +104,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 3_600_000,
     tier: 2,
     attribution: 'NASA EONET',
+    ko: 'EONET 카테고리',
+    desc: '자연재해 카테고리(폭풍·화산 등) 필터 (60분 갱신)',
   },
   'noaa-solar': {
     id: 'noaa-solar',
@@ -96,6 +114,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 1_800_000,
     tier: 2,
     attribution: 'NOAA Space Weather Prediction Center',
+    ko: 'NOAA 태양',
+    desc: '태양 흑점 수와 F10.7 전파 flux 수치를 헤더에 표시합니다 (30분 갱신)',
   },
   geonames: {
     id: 'geonames',
@@ -104,6 +124,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 2,
     attribution: 'GeoNames (CC-BY 4.0)',
+    ko: 'GeoNames 도시',
+    desc: '전세계 인구 500명 이상 도시 약 200000개를 인구에 비례해 원으로 표시합니다 (1회)',
   },
   'kr-admin': {
     id: 'kr-admin',
@@ -112,6 +134,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 3,
     attribution: 'data.go.kr (public, CORS-uncertain)',
+    ko: '한국 시도',
+    desc: '대한민국 17개 시·도를 면적·인구 색상 choropleth로 칠합니다 (1회)',
   },
   'kr-district': {
     id: 'kr-district',
@@ -120,6 +144,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 3,
     attribution: 'data.go.kr (public, CORS-uncertain)',
+    ko: '한국 시군구',
+    desc: '시·도 안의 시·군·구 경계와 이름 라벨 (1회)',
   },
   'kr-poi': {
     id: 'kr-poi',
@@ -128,6 +154,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 3,
     attribution: 'data.go.kr public POI (CORS-uncertain)',
+    ko: '한국 POI',
+    desc: '대한민국 주요 관광지·음식점·시설 등 포인트 (1회)',
   },
   'black-marble': {
     id: 'black-marble',
@@ -136,6 +164,8 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 3,
     attribution: 'NASA EOSDIS GIBS',
+    ko: 'NASA 야간 조명',
+    desc: 'NASA Black Marble 야간 지구 사진 오버레이 (정적)',
   },
   gebco: {
     id: 'gebco',
@@ -144,5 +174,7 @@ export const SOURCES: Record<DataSourceId, DataSource> = {
     pollMs: 0,
     tier: 3,
     attribution: 'GEBCO Compilation Group',
+    ko: 'GEBCO 해저',
+    desc: 'GEBCO 해저 지형 오버레이 (정적)',
   },
 };
