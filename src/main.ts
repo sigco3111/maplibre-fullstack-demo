@@ -33,6 +33,20 @@ const TIER2_ENTRIES: SidebarEntry[] = [
   { tier: 'tier2', slug: 'sky-fog-terrain', title: 'Sky + Fog + Terrain (advanced)' },
 ];
 
+const TIER3_ENTRIES: SidebarEntry[] = [
+  { tier: 'tier3', slug: 'satellite', title: 'Satellite Map' },
+  { tier: 'tier3', slug: 'fill-extrusion', title: 'Globe + Fill Extrusion' },
+  { tier: 'tier3', slug: '3d-model', title: '3D Model (three.js)' },
+  { tier: 'tier3', slug: '3d-model-shadow', title: '3D Model w/ Shadow' },
+  { tier: 'tier3', slug: 'time-slider', title: 'Time Slider' },
+  { tier: 'tier3', slug: 'clusters', title: 'Clusters' },
+  { tier: 'tier3', slug: 'popup', title: 'Popup on Click' },
+  { tier: 'tier3', slug: 'symbol-on-click', title: 'Symbol on Click' },
+  { tier: 'tier3', slug: '360-photosphere', title: '360 Photosphere' },
+  { tier: 'tier3', slug: 'game-controls', title: 'Game-like Controls' },
+  { tier: 'tier3', slug: 'live-realtime', title: 'Live Realtime (ISS)' },
+];
+
 const map = new maplibregl.Map({
   container: 'map',
   style: OSM_STYLE,
@@ -43,7 +57,7 @@ const map = new maplibregl.Map({
 });
 
 const sidebarRoot = document.getElementById('sidebar-root');
-if (sidebarRoot) renderSidebar(sidebarRoot, [...TIER1_ENTRIES, ...TIER2_ENTRIES], (id, enabled) => {
+if (sidebarRoot) renderSidebar(sidebarRoot, [...TIER1_ENTRIES, ...TIER2_ENTRIES, ...TIER3_ENTRIES], (id, enabled) => {
   console.log('[data toggle]', id, enabled);
 });
 
