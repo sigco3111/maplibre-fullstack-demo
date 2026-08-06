@@ -275,3 +275,102 @@ gh repo view --web  # README 확인
 - 🔗 [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) — DEM
 - 🔗 [vercel 스킬](file:///Users/mac/.hermes/skills/devops/vercel/) — 배포
 - 🔗 [github-pr-workflow 스킬](file:///Users/mac/.hermes/skills/devops/) — PR
+
+## 10. Vercel 배포 가이드 (★★ 실측 완료)
+
+### 현재 상태
+
+- 🔗 **Live Demo**: https://maplibre-demo-eight.vercel.app (HTTP 200, 3431 bytes, bit-perfect)
+- 🔗 **Production URL**: https://maplibre-demo-pdifj0ouc-sigco3111s-projects.vercel.app (team-scope, anon 302)
+- 📦 **Vercel Project**: `maplibre-demo` (sigco3111s-projects scope)
+- ✅ **첫 배포 완료**: 2026-08-06, `vercel --yes --prod --non-interactive --scope sigco3111s-projects`
+
+### 3-파일 정형 (셋업 완료)
+
+```
+public/
+└── index.html         # 빈 페이지 (3,431 bytes)
+
+vercel.json            # @vercel/static 빌드
+.vercelignore          # 배포 제외 (node_modules, .git, *.md, .omo/ 등)
+```
+
+`vercel.json`:
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
+```
+
+### 표준 배포 명령 (복붙)
+
+```bash
+cd /Users/mac/work/maplibre-demo
+TOK=$(cat ~/.hermes/secrets/vercel_token.txt)
+
+# 1. 자동 검증 (배포 전)
+[ -s ~/.hermes/secrets/vercel_token.txt ] && grep -q "^vcp_" ~/.hermes/secrets/vercel_token.txt || { echo "❌ 토큰 없음"; exit 1; }
+vercel whoami --token "$TOK"  # sigco3111 출력 확인
+
+# 2. 변경사항 커밋 + 푸시
+git add -A
+git commit -m "<commit message>"
+git push origin main
+
+# 3. 명시적 redeploy (안전망 — 자동배포 silent fail 대비)
+vercel deploy --yes --prod --non-interactive --scope sigco3111s-projects --token "$TOK" 2>&1 | tail -15
+
+# 4. 30초 대기 후 alias 검증
+sleep 30
+curl -sI https://maplibre-demo-eight.vercel.app | head -1   # → HTTP/2 200
+curl -s https://maplibre-demo-eight.vercel.app | wc -c     # → 3,431 (bit-perfect)
+```
+
+### v0.2.0+ (Vite 마이그레이션 후) 변경점
+
+| 변경 | 작업 |
+|---|---|
+| `vercel.json` | `builds.routes` 제거, `buildCommand: "npm run build"`, `outputDirectory: "dist"` 사용 |
+| `base` (vite.config.ts) | `/` (Vercel) 또는 `/maplibre-fullstack-demo/` (GitHub Pages) |
+| 검증 | 위 "4. 검증" 어서션 + 추가: `dist/assets/index-*.js` SHA == alias JS SHA |
+
+Vite 마이그레이션 후 vercel.json 정형:
+```json
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite"
+}
+```
+
+### 자주 겪는 함정 (실측 4종)
+
+| # | 문제 | 해결 |
+|---|---|---|
+| 1 | `non-interactive mode에서 scope 없음` 에러 | `--scope sigco3111s-projects` 명시 |
+| 2 | team-scope URL 302 anon | README에 **alias** URL (`-eight.vercel.app`) 사용 |
+| 3 | push 후 alias 옛 hash | `vercel deploy --prod --force` 강제 redeploy |
+| 4 | `.gitignore` 차단 자산 push | `git add -f <path>` (옵션 A) |
+
+### 4축 deploy 전 자기검증 (★ v6.5 패턴)
+
+```bash
+# grep + 사전 점검
+vercel_cmd="vercel --yes --prod --non-interactive --scope sigco3111s-projects --token \"$TOK\""
+grep -q -- '--name' <<<"$vercel_cmd" && echo "❌ --name deprecated" || echo "✓ --name 없음"
+grep -q -- '--token' <<<"$vercel_cmd" || echo "❌ --token 없음"
+grep -qE '^vcp_' <<<"$TOK" || echo "❌ TOK prefix 이상"
+```

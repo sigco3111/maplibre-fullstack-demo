@@ -20,6 +20,13 @@ npm run dev
 # http://localhost:5173
 ```
 
+## 🌐 Live Demo
+
+🔗 **https://maplibre-demo-eight.vercel.app**
+
+> 현재 상태: 빌드 셋업 완료, Tier 1 데모 작업 예정.
+> Tier 1 작업 완료 시 Vercel 자동 재배포 (5-30초).
+
 ## 📦 스택
 
 - **Vite** + **TypeScript**
