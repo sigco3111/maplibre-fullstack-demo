@@ -16,6 +16,7 @@ export type DemoSpec = {
 let pendingUnmount: (() => void) | null = null;
 let styleWaitToken = 0;
 let maxWaitTimer: ReturnType<typeof setTimeout> | null = null;
+let cameraListenersAttached: (() => void) | null = null;
 
 const REVEAL_MAX_WAIT_MS = 2000;
 
@@ -32,6 +33,25 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
   }
 
   let cancelled = false;
+
+  const applyCamera = (): void => {
+    if (cancelled || token !== styleWaitToken) return;
+    try {
+      if (spec.projection) map.setProjection({ type: spec.projection } as never);
+      if (spec.center) map.setCenter(spec.center);
+      if (spec.zoom !== undefined) map.setZoom(spec.zoom);
+      if (spec.pitch !== undefined) map.setPitch(spec.pitch);
+      if (spec.bearing !== undefined) map.setBearing(spec.bearing);
+    } catch (e) {
+      console.warn('[demo] camera error', e);
+    }
+  };
+
+  const onStyleReady = (): void => {
+    if (cancelled || token !== styleWaitToken) return;
+    requestAnimationFrame(applyCamera);
+  };
+
   const performSwitch = (): void => {
     if (token !== styleWaitToken) return;
     if (cancelled) return;
@@ -43,13 +63,7 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
       } catch (e) {
         console.error('[demo] setStyle error', e);
       }
-      if (spec.projection) {
-        try { map.setProjection({ type: spec.projection } as never); } catch (e) { console.warn('[demo] setProjection', e); }
-      }
-      if (spec.center) map.setCenter(spec.center);
-      if (spec.zoom !== undefined) map.setZoom(spec.zoom);
-      if (spec.pitch !== undefined) map.setPitch(spec.pitch);
-      if (spec.bearing !== undefined) map.setBearing(spec.bearing);
+      map.once('styledata', onStyleReady);
     });
   };
 
@@ -72,11 +86,11 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
       setTimeout(() => {
         if (cancelled || token !== styleWaitToken) return;
         if (spec.onLoad) {
-        try {
-          onLoadCleanup = spec.onLoad(map);
-        } catch (e) {
-          console.error('[demo] onLoad error', e);
-        }
+          try {
+            onLoadCleanup = spec.onLoad(map);
+          } catch (e) {
+            console.error('[demo] onLoad error', e);
+          }
         }
       }, 0);
     });
