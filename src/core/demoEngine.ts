@@ -16,7 +16,6 @@ export type DemoSpec = {
 let pendingUnmount: (() => void) | null = null;
 let styleWaitToken = 0;
 let maxWaitTimer: ReturnType<typeof setTimeout> | null = null;
-let cameraListenersAttached: (() => void) | null = null;
 
 const REVEAL_MAX_WAIT_MS = 2000;
 
@@ -33,9 +32,13 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
   }
 
   let cancelled = false;
+  let onLoadCleanup: (() => void) | void = undefined;
+  let cameraApplied = false;
+  let onLoadRan = false;
 
   const applyCamera = (): void => {
-    if (cancelled || token !== styleWaitToken) return;
+    if (cancelled || token !== styleWaitToken || cameraApplied) return;
+    cameraApplied = true;
     try {
       if (spec.projection) map.setProjection({ type: spec.projection } as never);
       if (spec.center) map.setCenter(spec.center);
@@ -47,53 +50,28 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
     }
   };
 
-  const onStyleReady = (): void => {
+  const runOnLoad = (): void => {
+    if (cancelled || token !== styleWaitToken || onLoadRan) return;
+    onLoadRan = true;
+    if (spec.onLoad) {
+      try {
+        onLoadCleanup = spec.onLoad(map);
+      } catch (e) {
+        console.error('[demo] onLoad error', e);
+      }
+    }
+  };
+
+  const onStyleLoaded = (): void => {
     if (cancelled || token !== styleWaitToken) return;
     requestAnimationFrame(applyCamera);
+    requestAnimationFrame(runOnLoad);
   };
-
-  const performSwitch = (): void => {
-    if (token !== styleWaitToken) return;
-    if (cancelled) return;
-    if (container) container.style.visibility = 'hidden';
-    requestAnimationFrame(() => {
-      if (token !== styleWaitToken || cancelled) return;
-      try {
-        map.setStyle(spec.style as never, { diff: false });
-      } catch (e) {
-        console.error('[demo] setStyle error', e);
-      }
-      map.once('styledata', onStyleReady);
-    });
-  };
-
-  if (map.loaded()) {
-    performSwitch();
-  } else {
-    map.once('load', performSwitch);
-  }
-
-  let onLoadCleanup: (() => void) | void = undefined;
-  let revealed = false;
 
   const reveal = (): void => {
-    if (cancelled || revealed) return;
+    if (cancelled) return;
     if (token !== styleWaitToken) return;
-    revealed = true;
     if (container) container.style.visibility = 'visible';
-    requestAnimationFrame(() => {
-      if (cancelled || token !== styleWaitToken) return;
-      setTimeout(() => {
-        if (cancelled || token !== styleWaitToken) return;
-        if (spec.onLoad) {
-          try {
-            onLoadCleanup = spec.onLoad(map);
-          } catch (e) {
-            console.error('[demo] onLoad error', e);
-          }
-        }
-      }, 0);
-    });
     pendingUnmount = () => {
       try {
         if (typeof onLoadCleanup === 'function') onLoadCleanup();
@@ -104,6 +82,26 @@ export function applyDemo(map: MaplibreMapType, spec: DemoSpec): () => void {
 
   const onIdle = (): void => { reveal(); };
   map.once('idle', onIdle);
+
+  const performSwitch = (): void => {
+    if (token !== styleWaitToken || cancelled) return;
+    if (container) container.style.visibility = 'hidden';
+    requestAnimationFrame(() => {
+      if (token !== styleWaitToken || cancelled) return;
+      try {
+        map.setStyle(spec.style as never, { diff: false });
+      } catch (e) {
+        console.error('[demo] setStyle error', e);
+      }
+      map.once('styledata', onStyleLoaded);
+    });
+  };
+
+  if (map.loaded()) {
+    performSwitch();
+  } else {
+    map.once('load', performSwitch);
+  }
 
   maxWaitTimer = setTimeout(() => { reveal(); }, REVEAL_MAX_WAIT_MS);
 
