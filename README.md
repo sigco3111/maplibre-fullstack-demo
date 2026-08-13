@@ -22,7 +22,7 @@ npm run dev
 
 ## 🌐 Live Demo
 
-🔗 **https://maplibre-demo-eight.vercel.app**
+🔗 **https://maplibre-fullstack-demo.vercel.app**
 
 > 현재 상태: **모든 tier (1/2/3) 라이브** — 21 데모 + 15 데이터 소스
 > Latest deploy: `v0.3.0-tier3` (SHA `21e4e4129d02427cab0a923517127b40b2e54f04984b2dd5170c33c0da81981a`)
